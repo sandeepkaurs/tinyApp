@@ -1,5 +1,6 @@
 const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+// assisted by fellow colleague in order to apply following technigue to generate string
 const generateRandomString = () => {
   return ((Math.random() + 1)* 0x10000).toString(36).substring(6);
 }
@@ -56,6 +57,15 @@ app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
   res.redirect(longURL);
+});
+
+// to delete url resource and redirect back to index(urls)
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  if (req.session.userID && req.session.userID === urlDatabase[shortURL].userID) {
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  }
 });
 
 app.listen(PORT, () => {
