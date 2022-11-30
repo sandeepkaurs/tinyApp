@@ -60,9 +60,8 @@ app.get("/u/:id", (req, res) => {
 });
 
 // to delete url resource and redirect back to index(urls)
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete shortURL;
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   
 });
