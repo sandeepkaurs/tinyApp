@@ -60,11 +60,23 @@ app.get("/u/:id", (req, res) => {
 });
 
 // to delete url resource and redirect back to index(urls)
-app.post("/urls/:id/delete", (req, res) => {
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log("urlDatabase", urlDatabase);
+  console.log("shortURL", req.params.shortURL);
   delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   
 });
+
+app.post("/urls/:id", (req, res) => {
+  console.log("body", req.body);
+  console.log("id", req.params.id);
+  const longURL = req.body.NewURL;
+  const shortURL = req.params.id;
+  urlDatabase[shortURL] = longURL;
+  console.log("urlDatabase", urlDatabase);
+    res.redirect("/urls");
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
