@@ -62,8 +62,9 @@ app.get("/u/:id", (req, res) => {
 // to delete url resource and redirect back to index(urls)
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
+  delete shortURL;
     res.redirect("/urls");
-  }
+  
 });
 
 app.listen(PORT, () => {
