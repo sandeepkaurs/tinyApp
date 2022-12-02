@@ -75,7 +75,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const username = req.cookies.username;
+  const user_id = req.cookies.user_id;
   const templateVars = { 
     id: req.params.id, 
     longURL:urlDatabase[req.params.id], 
@@ -85,7 +85,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const username = req.cookies.username;
+  const user_id = req.cookies.user_id;
   const templateVars = { 
     id: req.params.id, 
     longURL:urlDatabase[req.params.id], 
@@ -118,25 +118,6 @@ app.post("/urls/:id", (req, res) => {
   console.log("urlDatabase", urlDatabase);
     res.redirect("/urls");
 })
-
-// login page
-app.get("/login", (req, res) => {
-  const templateVars = {
-    user: users[req.cookies.user_id], 
-  }
-  res.render("urls_login", templateVars);
-})
-// login
-app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
-  res.redirect("/urls");
-})
-// logout
-app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.redirect('/urls');
-})
 // register-get
 app.get("/register", (req, res) => {
   const templateVars = {
@@ -150,11 +131,13 @@ app.post("/register",(req, res) => {
   const userID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  console.log(userID, email, password);
+  console.log(users);
   if (!email || !password) {
     return res.status(400).send("Please provide email & password");
   } 
-  if (getUserByEmail(email)) {
+  const user = getUserByEmail(email)
+  console.log("returned user", user);
+  if (getUserByEmail(req.body.email)) {
     return res.status(400).send("Email already exists");
   }
   const newUser = {
@@ -168,13 +151,38 @@ app.post("/register",(req, res) => {
   res.redirect("/urls")
 })
 
-// login page post
-// app.post("/login", (req, res) => {
-//   const email = req.body.email;
-//   const password = req.body.password;
-
-// })
-
+// login page
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.user_id], 
+  }
+  res.render("urls_login", templateVars);
+})
+// login
+app.post("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.user_id], 
+  }
+  const user = getUserByEmail(req.body.email, users);
+  const password = req.body.password;
+  // f a user with that e-mail cannot be found, return a response with a 403 status code
+  if(!user) {
+    return res.status(403).send("User not found");
+  }
+  // If a user with that e-mail address is located, compare the password given in the form with the existing user's password. If it does not match, return a response with a 403 status code.
+  if (user && user.password !== password) {
+    return res.status(403).send("Password doesn't match") 
+  }
+  const user_id = user.id
+  // If both checks pass, set the user_id cookie with the matching user's random ID, then redirect to /urls.
+  res.cookie("user_id", user_id);
+  res.redirect("/urls");
+})
+// logout
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect('/login');
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
