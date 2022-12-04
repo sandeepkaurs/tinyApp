@@ -1,8 +1,3 @@
-// assisted by fellow colleague in order to apply following technigue to generate string
-const generateRandomString = () => {
-  return ((Math.random() + 1)* 0x10000).toString(36).substring(6);
-}
-
 const express = require("express");
 const app = express();
 
@@ -11,9 +6,28 @@ app.use(cookieParser())
 
 const PORT = 8080; // default port 8080
 
+app.set("view engine", "ejs");
+
+app.use(express.urlencoded({ extended: true }));
+
+
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
+  // shortURL: {
+  //   longURL: "new long url from user",
+  //   userID: "user id that we generate for user when they registered",
+  // }
 };
 
 const users = {
@@ -28,6 +42,10 @@ const users = {
     password: "1234",
   },
 };
+// assisted by fellow colleague in order to apply following technigue to generate string
+const generateRandomString = () => {
+  return ((Math.random() + 1)* 0x10000).toString(36).substring(6);
+}
  // getUserByEmail
 const getUserByEmail = (email) => {
   for (const userID in users) {
@@ -39,9 +57,6 @@ const getUserByEmail = (email) => {
   return null;
 };
 
-app.set("view engine", "ejs");
-
-app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -64,9 +79,10 @@ app.get("/urls", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body.longURL); // Log the POST request body to the console
+  const user_id = req.cookies.user_id;
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {longURL, user_id};
   res.redirect(`/urls/${shortURL}`);
   // res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
@@ -74,18 +90,20 @@ app.post("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = { 
-    id: req.params.id, 
-    longURL:urlDatabase[req.params.id], 
+    // id: req.params.id, 
+    // longURL:urlDatabase[req.params.id].longURL, 
+    // need assistance to reconstruct template vars, do we need id and long url here
     user: users[req.cookies.user_id]
   };
   res.render("urls_new", templateVars);
 });
+// ask about this
 
 app.get("/urls/:id", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = { 
     id: req.params.id, 
-    longURL:urlDatabase[req.params.id], 
+    longURL:urlDatabase[req.params.id].longURL, 
     user: users[req.cookies.user_id]
   };
   res.render("urls_show", templateVars);
@@ -96,22 +114,22 @@ app.post("/urls/:id", (req, res) => {
   console.log("id", req.params.id);
   const longURL = req.body.NewURL;
   const shortURL = req.params.id;
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL].longURL = longURL;
   console.log("urlDatabase", urlDatabase);
     res.redirect("/urls");
 })
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
 // to delete url resource and redirect back to index(urls)
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.post("/urls/:id/delete", (req, res) => {
   console.log("urlDatabase", urlDatabase);
   console.log("shortURL", req.params.shortURL);
-  delete urlDatabase[req.params.shortURL];
+  delete urlDatabase[req.params.id];
     res.redirect("/urls");
   
 });
