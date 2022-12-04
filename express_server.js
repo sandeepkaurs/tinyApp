@@ -5,8 +5,10 @@ const generateRandomString = () => {
 
 const express = require("express");
 const app = express();
+
 const cookieParser = require("cookie-parser")
 app.use(cookieParser())
+
 const PORT = 8080; // default port 8080
 
 const urlDatabase = {
@@ -29,10 +31,7 @@ const users = {
  // getUserByEmail
 const getUserByEmail = (email) => {
   for (const userID in users) {
-    // console.log(userID);
-    // console.log(users[userID]);
     const user = users[userID];
-    //console.log(user);
     if (email === user.email) {
       return user;
     }
@@ -40,20 +39,9 @@ const getUserByEmail = (email) => {
   return null;
 };
 
-console.log(getUserByEmail("c@c.com"));
-
 app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
-
-app.post("/urls", (req, res) => {
-  console.log(req.body.longURL); // Log the POST request body to the console
-  const longURL = req.body.longURL;
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
-  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
-});
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -72,6 +60,15 @@ app.get("/urls", (req, res) => {
     user: users[req.cookies.user_id], 
     urls: urlDatabase};
   res.render("urls_index", templateVars);
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body.longURL); // Log the POST request body to the console
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);
+  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/new", (req, res) => {
@@ -94,6 +91,16 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:id", (req, res) => {
+  console.log("body", req.body);
+  console.log("id", req.params.id);
+  const longURL = req.body.NewURL;
+  const shortURL = req.params.id;
+  urlDatabase[shortURL] = longURL;
+  console.log("urlDatabase", urlDatabase);
+    res.redirect("/urls");
+})
+
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
@@ -109,15 +116,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   
 });
 
-app.post("/urls/:id", (req, res) => {
-  console.log("body", req.body);
-  console.log("id", req.params.id);
-  const longURL = req.body.NewURL;
-  const shortURL = req.params.id;
-  urlDatabase[shortURL] = longURL;
-  console.log("urlDatabase", urlDatabase);
-    res.redirect("/urls");
-})
 // register-get
 app.get("/register", (req, res) => {
   const templateVars = {
